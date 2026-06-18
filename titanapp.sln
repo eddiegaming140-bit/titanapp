@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.14.36811.4 d17.14
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "titanapp", "titanapp\titanapp.csproj", "{D14C8CA4-9E41-4BB6-AA69-60364EF75A8B}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{D14C8CA4-9E41-4BB6-AA69-60364EF75A8B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D14C8CA4-9E41-4BB6-AA69-60364EF75A8B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D14C8CA4-9E41-4BB6-AA69-60364EF75A8B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D14C8CA4-9E41-4BB6-AA69-60364EF75A8B}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {72F538DB-0F68-4E53-BA38-D011716074A9}
+	EndGlobalSection
+EndGlobal

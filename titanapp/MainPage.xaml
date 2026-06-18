@@ -1,0 +1,418 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="titanapp.MainPage"
+             BackgroundColor="#323232"
+             Shell.NavBarIsVisible="False">
+
+    <Grid x:Name="MainContainer" BackgroundColor="#323232" AnchorX="0" AnchorY="0" HorizontalOptions="Start" VerticalOptions="Start">
+        <AbsoluteLayout WidthRequest="1180" HeightRequest="820">
+
+            <BoxView AbsoluteLayout.LayoutBounds="0, 0, 1180, 97" Color="#323232" ZIndex="1" />
+
+            <Grid x:Name="MapFrame" AbsoluteLayout.LayoutBounds="0, 79, 587, 612" ZIndex="2">
+                <WebView x:Name="MapWebView">
+                    <WebView.Source>
+                        <HtmlWebViewSource>
+                            <HtmlWebViewSource.Html>
+                                <![CDATA[
+                                <!DOCTYPE html>
+                                <html>
+                                <head>
+                                    <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no">
+                                    <link href="https://unpkg.com/maplibre-gl@3.0.0/dist/maplibre-gl.css" rel="stylesheet" />
+                                    <script src="https://unpkg.com/maplibre-gl@3.0.0/dist/maplibre-gl.js"></script>
+                                    <style>
+                                        body { margin: 0; padding: 0; background-color: #1a1a1a; }
+                                        #map { position: absolute; top: 0; bottom: 0; width: 100%; }
+                                        .maplibregl-ctrl-bottom-left, .maplibregl-ctrl-bottom-right { display: none !important; }
+                                        
+                                        /* Enlarged Tilted 3D Navigation Pointer Styling */
+                                        .nav-pointer {
+                                            width: 60px;
+                                            height: 60px;
+                                            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><circle cx="16" cy="16" r="14" fill="%2300467C" stroke="white" stroke-width="2"/><polygon points="16,5 24,24 16,20 8,24" fill="white"/></svg>');
+                                            background-size: contain;
+                                            background-repeat: no-repeat;
+                                            background-position: center;
+                                            filter: drop-shadow(0px 10px 8px rgba(0,0,0,0.65));
+                                        }
+                                    </style>
+                                </head>
+                                <body>
+                                    <div id="map"></div>
+                                    <script>
+                                        const map = new maplibregl.Map({
+                                            container: 'map',
+                                            style: 'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json',
+                                            center: [15.6214, 58.4109],
+                                            zoom: 17,
+                                            pitch: 65,
+                                            bearing: 0
+                                        });
+
+                                        let userMarker;
+                                        
+                                        function updateUserLocation(lat, lng, heading) {
+                                            const coords = [lng, lat];
+                                            
+                                            if (!userMarker) { 
+                                                const el = document.createElement('div');
+                                                el.className = 'nav-pointer';
+                                                
+                                                userMarker = new maplibregl.Marker({ 
+                                                    element: el,
+                                                    rotationAlignment: 'map',
+                                                    pitchAlignment: 'map'
+                                                })
+                                                .setLngLat(coords)
+                                                .addTo(map);
+                                            } else { 
+                                                userMarker.setLngLat(coords); 
+                                            }
+                                            
+                                            const normalizedHeading = (heading !== null && heading !== 'null' && heading !== undefined) ? parseFloat(heading) : 0;
+                                            userMarker.setRotation(normalizedHeading);
+
+                                            map.easeTo({
+                                                center: coords,
+                                                bearing: normalizedHeading,
+                                                pitch: 65,
+                                                duration: 1000
+                                            });
+                                        }
+
+                                        function recenterMap() {
+                                            if (userMarker) {
+                                                map.easeTo({
+                                                    center: userMarker.getLngLat(),
+                                                    pitch: 65,
+                                                    zoom: 17,
+                                                    duration: 1000
+                                                });
+                                            }
+                                        }
+                                    </script>
+                                </body>
+                                </html>
+                                ]]>
+                            </HtmlWebViewSource.Html>
+                        </HtmlWebViewSource>
+                    </WebView.Source>
+                </WebView>
+            </Grid>
+
+            <Border AbsoluteLayout.LayoutBounds="520, 95, 52, 52" BackgroundColor="#A61A1A1A" StrokeThickness="2" Stroke="#33FFFFFF" StrokeShape="RoundRectangle 26" ZIndex="4">
+                <Border.GestureRecognizers>
+                    <TapGestureRecognizer Tapped="OnRecenterMapClicked" />
+                </Border.GestureRecognizers>
+                <Image Source="gps_icon.png" Aspect="AspectFit" Margin="10" />
+            </Border>
+
+            <Border AbsoluteLayout.LayoutBounds="15, 580, 75, 75" Stroke="#C00000" StrokeThickness="8" StrokeShape="RoundRectangle 37.5" BackgroundColor="#EED445" ZIndex="4">
+                <Label x:Name="SpeedLimitLabel" Text="??" TextColor="#222222" FontAttributes="Bold" FontSize="32" HorizontalOptions="Center" VerticalOptions="Center" Margin="0,-1,0,0"/>
+            </Border>
+
+            <Border AbsoluteLayout.LayoutBounds="15, 660, 60, 30" BackgroundColor="#CC1A1A1A" StrokeThickness="1" Stroke="#33FFFFFF" StrokeShape="RoundRectangle 12" ZIndex="4">
+                <HorizontalStackLayout Spacing="4" HorizontalOptions="Center" VerticalOptions="Center">
+                    <Image Source="speedometer_icon.png" WidthRequest="14" HeightRequest="14"/>
+                    <Label x:Name="CurrentSpeedLabel" Text="0" TextColor="White" FontSize="14" FontAttributes="Bold"/>
+                </HorizontalStackLayout>
+            </Border>
+
+            <Border AbsoluteLayout.LayoutBounds="15, 94, 142, 64" BackgroundColor="#8E8D8D" StrokeThickness="0" StrokeShape="RoundRectangle 45" ZIndex="3">
+                <Grid ColumnDefinitions="Auto,*" Padding="14,0,14,0" VerticalOptions="Center" HorizontalOptions="Center" ColumnSpacing="10">
+                    <Image Grid.Column="0" Source="mer_icon.png" WidthRequest="24" HeightRequest="24" VerticalOptions="Center"/>
+                    <Label Grid.Column="1" Text="Mer" TextColor="White" FontSize="20" FontAttributes="Bold" FontFamily="Inter" VerticalOptions="Center"/>
+                </Grid>
+            </Border>
+
+            <BoxView x:Name="VerticalDivider" Color="#E5E5E5" AbsoluteLayout.LayoutBounds="587, 79, 6, 612" ZIndex="5" />
+
+            <Image x:Name="RakelFrame" Source="rakel_frame_dark.png" AbsoluteLayout.LayoutBounds="593, 0, 587, 691" Aspect="AspectFill" ZIndex="10" />
+
+            <Border x:Name="status_btn" AbsoluteLayout.LayoutBounds="611, 104, 269, 78" BackgroundColor="#ACA3A4" StrokeThickness="0" StrokeShape="RoundRectangle 8" ZIndex="15">
+                <AbsoluteLayout>
+                    <Image Source="status_icon.png" AbsoluteLayout.LayoutBounds="26, 26, 26, 25" />
+                    <Label Text="Status" TextColor="White" FontSize="20" AbsoluteLayout.LayoutBounds="66, 27, 150, 30" />
+                </AbsoluteLayout>
+            </Border>
+            <Border x:Name="port_btn" AbsoluteLayout.LayoutBounds="611, 198, 269, 78" BackgroundColor="#ACA3A4" StrokeThickness="0" StrokeShape="RoundRectangle 8" ZIndex="15">
+                <AbsoluteLayout>
+                    <Image Source="port_icon.png" AbsoluteLayout.LayoutBounds="26, 26, 24, 25" />
+                    <Label Text="Portöppning" TextColor="White" FontSize="20" AbsoluteLayout.LayoutBounds="66, 27, 150, 30" />
+                </AbsoluteLayout>
+            </Border>
+            <Border x:Name="sds_btn" AbsoluteLayout.LayoutBounds="611, 292, 269, 78" BackgroundColor="#ACA3A4" StrokeThickness="0" StrokeShape="RoundRectangle 8" ZIndex="15">
+                <AbsoluteLayout>
+                    <Image Source="sds_icon.png" AbsoluteLayout.LayoutBounds="26, 29, 30, 24" />
+                    <Label Text="SDS" TextColor="White" FontSize="20" AbsoluteLayout.LayoutBounds="66, 27, 150, 30" />
+                </AbsoluteLayout>
+            </Border>
+            <Border x:Name="mer_btn" AbsoluteLayout.LayoutBounds="611, 386, 269, 78" BackgroundColor="#ACA3A4" StrokeThickness="0" StrokeShape="RoundRectangle 8" ZIndex="15">
+                <AbsoluteLayout>
+                    <Image Source="mer_icon.png" AbsoluteLayout.LayoutBounds="26, 27, 27, 27" />
+                    <Label Text="Mer" TextColor="White" FontSize="20" AbsoluteLayout.LayoutBounds="66, 27, 150, 30" />
+                </AbsoluteLayout>
+            </Border>
+            <Border x:Name="insats_btn" AbsoluteLayout.LayoutBounds="893, 104, 269, 78" BackgroundColor="#768CA1" StrokeThickness="0" StrokeShape="RoundRectangle 8" ZIndex="15">
+                <AbsoluteLayout>
+                    <Image Source="insats_icon.png" AbsoluteLayout.LayoutBounds="27, 22, 34, 34" />
+                    <Label Text="Insats" TextColor="White" FontSize="20" AbsoluteLayout.LayoutBounds="66, 27, 150, 30" />
+                </AbsoluteLayout>
+            </Border>
+            <Border x:Name="raps_btn" AbsoluteLayout.LayoutBounds="893, 198, 269, 78" BackgroundColor="#768CA1" StrokeThickness="0" StrokeShape="RoundRectangle 8" ZIndex="15">
+                <AbsoluteLayout>
+                    <Image Source="raps_icon.png" AbsoluteLayout.LayoutBounds="27, 25, 25, 27" />
+                    <Label Text="RAPS" TextColor="White" FontSize="20" AbsoluteLayout.LayoutBounds="66, 27, 150, 30" />
+                </AbsoluteLayout>
+            </Border>
+            <Border x:Name="sok_btn" AbsoluteLayout.LayoutBounds="893, 292, 269, 78" BackgroundColor="#768CA1" StrokeThickness="0" StrokeShape="RoundRectangle 8" ZIndex="15">
+                <AbsoluteLayout>
+                    <Image Source="sok_icon.png" AbsoluteLayout.LayoutBounds="27, 26, 26, 29" />
+                    <Label Text="Sök talgrupp" TextColor="White" FontSize="20" AbsoluteLayout.LayoutBounds="66, 27, 150, 30" />
+                </AbsoluteLayout>
+            </Border>
+            <Border x:Name="index_btn" AbsoluteLayout.LayoutBounds="893, 386, 269, 78" BackgroundColor="#768CA1" StrokeThickness="0" StrokeShape="RoundRectangle 8" ZIndex="15">
+                <AbsoluteLayout>
+                    <Image Source="index_icon.png" AbsoluteLayout.LayoutBounds="26, 26, 26, 26" />
+                    <Label Text="Index" TextColor="White" FontSize="20" AbsoluteLayout.LayoutBounds="66, 27, 150, 30" />
+                </AbsoluteLayout>
+            </Border>
+
+            <Border x:Name="foregaende_btn" AbsoluteLayout.LayoutBounds="613, 477, 150, 95" StrokeShape="RoundRectangle 20" BackgroundColor="#758CA1" StrokeThickness="0" ZIndex="15">
+                <Grid>
+                    <Image Source="arrow_back.png" WidthRequest="24" HeightRequest="28" VerticalOptions="Start" Margin="0,12,0,0"/>
+                    <Label Text="Föregående&#10;talgrupp" HorizontalTextAlignment="Center" TextColor="White" FontSize="16" VerticalOptions="End" Margin="0,0,0,8" LineHeight="0.9"/>
+                </Grid>
+            </Border>
+            <Border x:Name="normal_btn" AbsoluteLayout.LayoutBounds="782, 477, 150, 95" StrokeShape="RoundRectangle 20" BackgroundColor="#768CA1" StrokeThickness="0" ZIndex="15">
+                <Grid>
+                    <Image Source="n_icon.png" WidthRequest="25" HeightRequest="25" VerticalOptions="Start" Margin="0,12,0,0"/>
+                    <Label Text="Normal-&#10;passning" HorizontalTextAlignment="Center" TextColor="White" FontSize="16" VerticalOptions="End" Margin="0,0,0,8" LineHeight="0.9"/>
+                </Grid>
+            </Border>
+            <Border x:Name="lamna_btn" AbsoluteLayout.LayoutBounds="952, 477, 210, 95" StrokeShape="RoundRectangle 20" BackgroundColor="#BA3F34" StrokeThickness="0" ZIndex="15">
+                <Image Source="end_call.png" WidthRequest="50" HeightRequest="50" />
+            </Border>
+            <Border x:Name="paborj_btn" AbsoluteLayout.LayoutBounds="613, 584, 269, 95" StrokeShape="RoundRectangle 20" BackgroundColor="#ACA3A4" StrokeThickness="0" ZIndex="15">
+                <Grid>
+                    <Image Source="message_icon.png" WidthRequest="34" HorizontalOptions="Center" VerticalOptions="Start" Margin="0,11,0,0"/>
+                    <Label Text="Påbörj uppdrag" TextColor="White" FontSize="22" VerticalOptions="End" HorizontalOptions="Center" Margin="0,0,0,12"/>
+                </Grid>
+            </Border>
+            <Border x:Name="anrops_btn" AbsoluteLayout.LayoutBounds="898, 583, 269, 95" StrokeShape="RoundRectangle 20" BackgroundColor="#64895A" StrokeThickness="0" ZIndex="15">
+                <Border.GestureRecognizers>
+                    <TapGestureRecognizer Tapped="OnAnropsbegaranClicked" />
+                </Border.GestureRecognizers>
+                <Grid>
+                    <Image Source="anrops_btn_icon.png" WidthRequest="31" HorizontalOptions="Center" VerticalOptions="Start" Margin="0,15,0,0"/>
+                    <Label x:Name="anrops_label" Text="Anropsbegäran" TextColor="White" FontSize="22" VerticalOptions="End" HorizontalOptions="Center" Margin="0,0,0,12"/>
+                </Grid>
+            </Border>
+
+            <Grid x:Name="HrPageOverlay" BackgroundColor="#293042" AbsoluteLayout.LayoutBounds="596, 82, 581, 603" ZIndex="11" IsVisible="False">
+                <AbsoluteLayout>
+                    <Label x:Name="HrIdLabel" Text="Från: 240000101900051" TextColor="White" FontSize="24" AbsoluteLayout.LayoutBounds="48, 21, 400, 35" />
+                    <Label x:Name="HrTimeLabel" Text="2025-10-02, 13:01:20" TextColor="#CBD5E0" FontSize="14" AbsoluteLayout.LayoutBounds="49, 47, 250, 20" />
+                    <Border AbsoluteLayout.LayoutBounds="422, 31, 33, 33" BackgroundColor="Transparent" StrokeThickness="0">
+                        <Border.GestureRecognizers>
+                            <TapGestureRecognizer Tapped="OnHrUpClicked" />
+                        </Border.GestureRecognizers>
+                        <Image Source="hr_up_btn.png" Aspect="AspectFit" WidthRequest="33" HeightRequest="33" />
+                    </Border>
+                    <Label x:Name="HrPaginationLabel" Text="1/1" TextColor="White" FontSize="24" HorizontalTextAlignment="Center" VerticalTextAlignment="Center" AbsoluteLayout.LayoutBounds="464, 31, 60, 35" />
+                    <Border AbsoluteLayout.LayoutBounds="533, 31, 33, 33" BackgroundColor="Transparent" StrokeThickness="0">
+                        <Border.GestureRecognizers>
+                            <TapGestureRecognizer Tapped="OnHrDownClicked" />
+                        </Border.GestureRecognizers>
+                        <Image Source="hr_up_btn.png" Aspect="AspectFit" Rotation="180" WidthRequest="33" HeightRequest="33" />
+                    </Border>
+                    <Border BackgroundColor="#1E2435" StrokeThickness="0" AbsoluteLayout.LayoutBounds="8, 80, 562, 363" StrokeShape="RoundRectangle 8">
+                        <VerticalStackLayout Padding="20" Spacing="5">
+                            <Label x:Name="HrAddressLabel1" Text="Ica Maxi, Grafiska Vägen 16," TextColor="White" FontSize="22" FontAttributes="Bold" />
+                            <Label x:Name="HrAddressLabel2" Text="Krokslätt, Göteborg" TextColor="White" FontSize="20" />
+                            <Label x:Name="HrDescriptionLabel" Text="stöld I Butik, Stöld I Butik" TextColor="#CBD5E0" FontSize="18" Margin="0,10,0,0" LineBreakMode="WordWrap" />
+                        </VerticalStackLayout>
+                    </Border>
+                    <Border BackgroundColor="#BCBCBC" StrokeShape="RoundRectangle 20" StrokeThickness="0" AbsoluteLayout.LayoutBounds="166, 475, 176, 114" />
+                    <Image Source="hamta_hr_icon.png" AbsoluteLayout.LayoutBounds="239, 492, 25, 36" Aspect="AspectFit" />
+                    <Label Text="Hämta HR" TextColor="#202020" FontSize="22" AbsoluteLayout.LayoutBounds="187, 540, 134, 30" HorizontalTextAlignment="Center" />
+                    <Border BackgroundColor="#AF451F" StrokeShape="RoundRectangle 20" StrokeThickness="0" AbsoluteLayout.LayoutBounds="359, 475, 202, 115">
+                        <Grid RowDefinitions="*,*" Padding="0,22,0,12">
+                            <Image Grid.Row="0" Source="nav_dit.png" HeightRequest="24" Aspect="AspectFit" VerticalOptions="Center"/>
+                            <Label Grid.Row="1" Text="Navigera dit" TextColor="#202020" FontSize="18" FontAttributes="Bold" HorizontalTextAlignment="Center" VerticalOptions="Center"/>
+                        </Grid>
+                    </Border>
+                </AbsoluteLayout>
+            </Grid>
+
+            <Grid x:Name="KartaPageOverlay" BackgroundColor="#293042" AbsoluteLayout.LayoutBounds="596, 82, 581, 603" ZIndex="11" IsVisible="False">
+                <WebView x:Name="OverviewMapWebView">
+                    <WebView.Source>
+                        <HtmlWebViewSource>
+                            <HtmlWebViewSource.Html>
+                                <![CDATA[
+                                <!DOCTYPE html>
+                                <html>
+                                <head>
+                                    <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no">
+                                    <link href="https://unpkg.com/maplibre-gl@3.0.0/dist/maplibre-gl.css" rel="stylesheet" />
+                                    <script src="https://unpkg.com/maplibre-gl@3.0.0/dist/maplibre-gl.js"></script>
+                                    <style>
+                                        body { margin: 0; padding: 0; background-color: #1a1a1a; }
+                                        #map-overview { position: absolute; top: 0; bottom: 0; width: 100%; }
+                                        .maplibregl-ctrl-bottom-left, .maplibregl-ctrl-bottom-right { display: none !important; }
+                                        
+                                        /* Styling for the circular user tracker on the overview map */
+                                        .overview-circle {
+                                            width: 20px;
+                                            height: 20px;
+                                            background-color: #4285F4;
+                                            border: 3px solid white;
+                                            border-radius: 50%;
+                                            box-shadow: 0 0 10px rgba(0,0,0,0.5);
+                                        }
+                                    </style>
+                                </head>
+                                <body>
+                                    <div id="map-overview"></div>
+                                    <script>
+                                        const overviewMap = new maplibregl.Map({
+                                            container: 'map-overview',
+                                            style: 'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json',
+                                            center: [15.6214, 58.4109],
+                                            zoom: 12, 
+                                            pitch: 0, 
+                                            bearing: 0
+                                        });
+
+                                        // Add navigation controls so the user can zoom and pan easily
+                                        overviewMap.addControl(new maplibregl.NavigationControl(), 'top-right');
+
+                                        let overviewMarker;
+                                        let isFirstLoad = true;
+
+                                        function updateOverviewLocation(lat, lng) {
+                                            const coords = [lng, lat];
+                                            
+                                            if (!overviewMarker) {
+                                                const el = document.createElement('div');
+                                                el.className = 'overview-circle';
+                                                
+                                                overviewMarker = new maplibregl.Marker({ element: el })
+                                                    .setLngLat(coords)
+                                                    .addTo(overviewMap);
+                                            } else {
+                                                overviewMarker.setLngLat(coords);
+                                            }
+                                            
+                                            // Only center map on the very first GPS fix.
+                                            // This allows the user to pan around freely without snapping back.
+                                            if (isFirstLoad) {
+                                                overviewMap.jumpTo({ center: coords, zoom: 14 });
+                                                isFirstLoad = false;
+                                            }
+                                        }
+                                    </script>
+                                </body>
+                                </html>
+                                ]]>
+                            </HtmlWebViewSource.Html>
+                        </HtmlWebViewSource>
+                    </WebView.Source>
+                </WebView>
+                <Border HorizontalOptions="Start" VerticalOptions="Start" Margin="10" BackgroundColor="#CC1A1A1A" StrokeThickness="1" Stroke="#33FFFFFF" StrokeShape="RoundRectangle 8">
+                    <Label Text="Översiktskarta (2D)" TextColor="White" FontSize="14" FontAttributes="Bold" Margin="10,5"/>
+                </Border>
+            </Grid>
+
+            <Label x:Name="call_sign_label" Text="33-1210" TextColor="White" FontSize="29" AbsoluteLayout.LayoutBounds="7, 15, 130, 40" ZIndex="25" />
+            <HorizontalStackLayout AbsoluteLayout.LayoutBounds="7, 50, 150, 25" Spacing="5" ZIndex="25">
+                <Image Source="user_icon.png" WidthRequest="15" HeightRequest="15" VerticalOptions="Center" />
+                <Label Text="u0022586" TextColor="White" FontSize="14" FontFamily="Inter" VerticalOptions="Center" />
+            </HorizontalStackLayout>
+            <Label x:Name="time_label" Text="00:00" TextColor="White" FontSize="29" AbsoluteLayout.LayoutBounds="379, 15, 150, 40" ZIndex="25" />
+            <Label x:Name="date_label" Text="Ons 4 feb." TextColor="White" FontSize="16" AbsoluteLayout.LayoutBounds="379, 53, 200, 25" ZIndex="25" />
+            <Label Text="Order Linköpi" TextColor="White" FontSize="22" HorizontalOptions="End" HorizontalTextAlignment="End" AbsoluteLayout.LayoutBounds="890, 16, 200, 40" ZIndex="25" />
+            <Image Source="sound_btn.png" AbsoluteLayout.LayoutBounds="1100, 10, 68, 68" Aspect="AspectFit" ZIndex="25" />
+
+            <AbsoluteLayout AbsoluteLayout.LayoutBounds="0, 699, 1180, 121" ZIndex="30">
+                <Border x:Name="full_screen_btn" AbsoluteLayout.LayoutBounds="17, 17, 94, 94" BackgroundColor="#C9C1C1" StrokeShape="RoundRectangle 8" StrokeThickness="0" Padding="8">
+                    <Image Source="arrows.png" Aspect="AspectFit" RotationY="180" />
+                </Border>
+
+                <Border x:Name="nav_border" AbsoluteLayout.LayoutBounds="117, 0, 130, 111" StrokeShape="RoundRectangle 8" BackgroundColor="#00467C" StrokeThickness="0">
+                    <VerticalStackLayout VerticalOptions="Center">
+                        <Image Source="nav_btn_icon.png" WidthRequest="37" />
+                        <Label Text="Navigation" TextColor="White" FontSize="20" HorizontalOptions="Center"/>
+                    </VerticalStackLayout>
+                </Border>
+
+                <Border x:Name="karta_border" AbsoluteLayout.LayoutBounds="253, 0, 130, 111" StrokeShape="RoundRectangle 8" BackgroundColor="Transparent" StrokeThickness="0">
+                    <Border.GestureRecognizers>
+                        <TapGestureRecognizer Tapped="OnKartaClicked" />
+                    </Border.GestureRecognizers>
+                    <VerticalStackLayout VerticalOptions="Center">
+                        <Image Source="karta_btn_icon.png" WidthRequest="32" />
+                        <Label Text="Karta" TextColor="White" FontSize="20" HorizontalOptions="Center"/>
+                    </VerticalStackLayout>
+                </Border>
+
+                <Border x:Name="meny_border" AbsoluteLayout.LayoutBounds="389, 0, 130, 111" StrokeShape="RoundRectangle 8" BackgroundColor="#C9C1C1" StrokeThickness="0">
+                    <Border.GestureRecognizers>
+                        <TapGestureRecognizer Tapped="OnMenyClicked" />
+                    </Border.GestureRecognizers>
+                    <VerticalStackLayout VerticalOptions="Center">
+                        <Image Source="meny_btn_icon.png" WidthRequest="36" />
+                        <Label Text="Meny" TextColor="White" FontSize="20" HorizontalOptions="Center"/>
+                    </VerticalStackLayout>
+                </Border>
+
+                <Border x:Name="hem_border" AbsoluteLayout.LayoutBounds="525, 0, 130, 111" StrokeShape="RoundRectangle 8" BackgroundColor="#C9C1C1" StrokeThickness="0">
+                    <VerticalStackLayout VerticalOptions="Center">
+                        <Image Source="hem_btn_icon.png" WidthRequest="40" />
+                        <Label Text="Hem" TextColor="White" FontSize="20" HorizontalOptions="Center"/>
+                    </VerticalStackLayout>
+                </Border>
+
+                <Border x:Name="hr_border" AbsoluteLayout.LayoutBounds="797, 0, 130, 111" StrokeShape="RoundRectangle 8" BackgroundColor="Transparent" StrokeThickness="0">
+                    <Border.GestureRecognizers>
+                        <TapGestureRecognizer Tapped="OnHrClicked" />
+                    </Border.GestureRecognizers>
+                    <VerticalStackLayout VerticalOptions="Center">
+                        <Image Source="hr_btn_icon.png" WidthRequest="29" />
+                        <Label Text="HR" TextColor="White" FontSize="20" HorizontalOptions="Center"/>
+                    </VerticalStackLayout>
+                </Border>
+
+                <Border x:Name="rakel_border" AbsoluteLayout.LayoutBounds="933, 0, 130, 111" StrokeShape="RoundRectangle 8" BackgroundColor="#00467C" StrokeThickness="0">
+                    <Border.GestureRecognizers>
+                        <TapGestureRecognizer Tapped="OnRakelClicked" />
+                    </Border.GestureRecognizers>
+                    <VerticalStackLayout VerticalOptions="Center">
+                        <Image Source="rakel_btn_icon.png" WidthRequest="38" />
+                        <Label Text="Rakel" TextColor="White" FontSize="20" HorizontalOptions="Center"/>
+                    </VerticalStackLayout>
+                </Border>
+
+                <Border x:Name="full_screen_btn2" AbsoluteLayout.LayoutBounds="1069, 17, 94, 94" BackgroundColor="#C9C1C1" StrokeShape="RoundRectangle 8" StrokeThickness="0" Padding="8">
+                    <Image Source="arrows.png" Aspect="AspectFit" />
+                </Border>
+            </AbsoluteLayout>
+
+            <Grid x:Name="CreateHrPopup" AbsoluteLayout.LayoutBounds="0,0,1180,820" BackgroundColor="#B3121212" ZIndex="40" IsVisible="False">
+                <Border BackgroundColor="#293042" WidthRequest="560" HeightRequest="500" HorizontalOptions="Center" VerticalOptions="Center" StrokeShape="RoundRectangle 12" StrokeThickness="1" Stroke="#405070" Padding="25">
+                    <VerticalStackLayout Spacing="15">
+                        <Label Text="SKAPA NY HANDLING (HR)" TextColor="White" FontSize="22" FontAttributes="Bold" HorizontalOptions="Center" />
+                        <Entry x:Name="PopupAddressInput" Placeholder="Ange adress..." TextColor="White" />
+                        <Editor x:Name="PopupDescriptionInput" Placeholder="Beskrivning..." TextColor="White" />
+                        <Button Text="Skapa handling" Clicked="OnSubmitHrClicked" />
+                        <Button Text="Avbryt" Clicked="OnClosePopupClicked" />
+                    </VerticalStackLayout>
+                </Border>
+            </Grid>
+
+        </AbsoluteLayout>
+    </Grid>
+</ContentPage>
