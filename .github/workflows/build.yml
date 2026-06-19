@@ -19,12 +19,15 @@ jobs:
         run: |
           PROJ=$(find . -name "*.csproj" -print -quit)
           echo "Found project at: $PROJ"
-          sudo dotnet workload restore "$PROJ" -p:TargetFramework=net8.0-ios --skip-manifest-update -p:CheckEolWorkloads=false
+          DOTNET_PATH=$(which dotnet)
+          echo "Targeting exact .NET binary: $DOTNET_PATH"
+          sudo env "PATH=$PATH" "$DOTNET_PATH" workload restore "$PROJ" -p:TargetFramework=net8.0-ios --skip-manifest-update -p:CheckEolWorkloads=false
 
       - name: Build App Bundle
         run: |
           PROJ=$(find . -name "*.csproj" -print -quit)
-          dotnet publish "$PROJ" -p:TargetFramework=net8.0-ios -c Release -p:EnableCodeSigning=false -p:CheckEolWorkloads=false
+          DOTNET_PATH=$(which dotnet)
+          "$DOTNET_PATH" publish "$PROJ" -p:TargetFramework=net8.0-ios -c Release -p:EnableCodeSigning=false -p:CheckEolWorkloads=false
 
       - name: Convert to IPA Archive
         run: |
