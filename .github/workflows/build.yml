@@ -20,10 +20,8 @@ jobs:
           echo '{"sdk":{"version":"9.0.100","rollForward":"latestMinor"}}' > global.json
           cat global.json
 
-      - name: Install All Required Workloads
-        run: |
-          PROJ=$(find . -name "*.csproj" -print -quit)
-          sudo dotnet workload restore "$PROJ" --skip-manifest-update
+      - name: Install Mobile Workloads Globally
+        run: sudo dotnet workload install maui-ios maui-android --skip-manifest-update
 
       - name: Build App Bundle
         run: |
