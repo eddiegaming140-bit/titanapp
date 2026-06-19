@@ -21,7 +21,7 @@ jobs:
           cat global.json
 
       - name: Install Mobile Workloads Globally
-        run: sudo dotnet workload install maui-ios maui-android --skip-manifest-update
+        run: sudo dotnet workload install maui-ios maui-android maccatalyst --skip-manifest-update
 
       - name: Build App Bundle
         run: |
