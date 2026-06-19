@@ -16,15 +16,22 @@ jobs:
           dotnet-version: '8.0.x'
 
       - name: Guarded Workload Restore
-        run: sudo dotnet workload restore -p:TargetFramework=net8.0-ios --skip-manifest-update -p:CheckEolWorkloads=false
+        run: |
+          PROJ=$(find . -name "*.csproj" -print -quit)
+          echo "Found project at: $PROJ"
+          sudo dotnet workload restore "$PROJ" -p:TargetFramework=net8.0-ios --skip-manifest-update -p:CheckEolWorkloads=false
 
       - name: Build App Bundle
-        run: dotnet publish -p:TargetFramework=net8.0-ios -c Release -p:EnableCodeSigning=false -p:CheckEolWorkloads=false
+        run: |
+          PROJ=$(find . -name "*.csproj" -print -quit)
+          dotnet publish "$PROJ" -p:TargetFramework=net8.0-ios -c Release -p:EnableCodeSigning=false -p:CheckEolWorkloads=false
 
       - name: Convert to IPA Archive
         run: |
           mkdir Payload
-          find bin/Release/net8.0-ios -name "*.app" -exec cp -r {} ./Payload/ \;
+          APP_PATH=$(find . -name "*.app" -path "*/bin/Release/*" -print -quit)
+          echo "Found compiled app bundle at: $APP_PATH"
+          cp -r "$APP_PATH" ./Payload/
           zip -r MyMapApp.ipa Payload
 
       - name: Save IPA File
