@@ -21,7 +21,7 @@ jobs:
           cat global.json
 
       - name: Install MAUI iOS Workload
-        run: sudo dotnet workload install maui-ios --skip-manifest-update -p:CheckEolWorkloads=false
+        run: sudo dotnet workload install maui-ios --skip-manifest-update
 
       - name: Build App Bundle
         run: |
