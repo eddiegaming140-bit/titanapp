@@ -15,19 +15,18 @@ jobs:
         with:
           dotnet-version: '8.0.x'
 
-      - name: Guarded Workload Restore
+      - name: Block .NET 10 Hijack (Pin to .NET 8)
         run: |
-          PROJ=$(find . -name "*.csproj" -print -quit)
-          echo "Found project at: $PROJ"
-          DOTNET_PATH=$(which dotnet)
-          echo "Targeting exact .NET binary: $DOTNET_PATH"
-          sudo env "PATH=$PATH" "$DOTNET_PATH" workload restore "$PROJ" -p:TargetFramework=net8.0-ios --skip-manifest-update -p:CheckEolWorkloads=false
+          echo '{"sdk":{"version":"8.0.100","rollForward":"latestMinor"}}' > global.json
+          cat global.json
+
+      - name: Install MAUI iOS Workload
+        run: sudo dotnet workload install maui-ios --skip-manifest-update -p:CheckEolWorkloads=false
 
       - name: Build App Bundle
         run: |
           PROJ=$(find . -name "*.csproj" -print -quit)
-          DOTNET_PATH=$(which dotnet)
-          "$DOTNET_PATH" publish "$PROJ" -p:TargetFramework=net8.0-ios -c Release -p:EnableCodeSigning=false -p:CheckEolWorkloads=false
+          dotnet publish "$PROJ" -p:TargetFramework=net8.0-ios -c Release -p:EnableCodeSigning=false -p:CheckEolWorkloads=false
 
       - name: Convert to IPA Archive
         run: |
