@@ -15,11 +15,11 @@ jobs:
         with:
           dotnet-version: '8.0.x'
 
-      - name: Restore All MAUI Workloads
-        run: sudo dotnet workload restore
+      - name: Install MAUI iOS Workload
+        run: dotnet workload install maui-ios --no-sign-check
 
       - name: Build App Bundle
-        run: dotnet publish -f net8.0-ios -c Release -p:EnableCodeSigning=false -p:CheckEolWorkloads=false
+        run: dotnet publish -p:TargetFramework=net8.0-ios -c Release -p:EnableCodeSigning=false -p:CheckEolWorkloads=false
 
       - name: Convert to IPA Archive
         run: |
