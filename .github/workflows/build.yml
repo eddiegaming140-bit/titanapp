@@ -13,13 +13,13 @@ jobs:
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '8.0.x' # Leaves this at .NET 8, change to 9.0.x if you updated your project to .NET 9
+          dotnet-version: '8.0.x'
 
       - name: Restore All MAUI Workloads
         run: sudo dotnet workload restore
 
       - name: Build App Bundle
-        run: dotnet publish -f net8.0-ios -c Release -p:EnableCodeSigning=false
+        run: dotnet publish -f net8.0-ios -c Release -p:EnableCodeSigning=false -p:CheckEolWorkloads=false
 
       - name: Convert to IPA Archive
         run: |
