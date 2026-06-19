@@ -20,13 +20,15 @@ jobs:
           echo '{"sdk":{"version":"8.0.100","rollForward":"latestMinor"}}' > global.json
           cat global.json
 
-      - name: Install MAUI iOS Workload
-        run: sudo dotnet workload install maui-ios --skip-manifest-update
+      - name: Install All Required Workloads
+        run: |
+          PROJ=$(find . -name "*.csproj" -print -quit)
+          sudo dotnet workload restore "$PROJ" --skip-manifest-update
 
       - name: Build App Bundle
         run: |
           PROJ=$(find . -name "*.csproj" -print -quit)
-          dotnet publish "$PROJ" -p:TargetFramework=net8.0-ios -c Release -p:EnableCodeSigning=false -p:CheckEolWorkloads=false
+          dotnet publish "$PROJ" -f net8.0-ios -c Release -p:EnableCodeSigning=false
 
       - name: Convert to IPA Archive
         run: |
