@@ -13,11 +13,11 @@ jobs:
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '8.0.x'
+          dotnet-version: '9.0.x'
 
-      - name: Block .NET 10 Hijack (Pin to .NET 8)
+      - name: Pin to .NET 9 SDK
         run: |
-          echo '{"sdk":{"version":"8.0.100","rollForward":"latestMinor"}}' > global.json
+          echo '{"sdk":{"version":"9.0.100","rollForward":"latestMinor"}}' > global.json
           cat global.json
 
       - name: Install All Required Workloads
